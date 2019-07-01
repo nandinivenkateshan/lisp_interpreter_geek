@@ -10,14 +10,15 @@ let allParser = allParserInput => {
 }
 
 const obj = {
-  '+': function (operands) { return operands.reduce((item, acc) => item + acc) },
+  '+': function (operands) { return operands.reduce((item, acc) => (item + acc)) },
   '-': function (operands) { return operands.reduce((item, acc) => (item - acc)) },
   '*': function (operands) { return operands.reduce((item, acc) => (item * acc)) },
   '/': function (operands) { return operands.reduce((item, acc) => (item / acc)) },
   '>': function (operands) { return (operands[0] > operands[1]) ? val : !val },
   '<': function (operands) { return (operands[0] < operands[1]) ? val : !val },
   '>=': function (operands) { return (operands[0] >= operands[1]) ? val : !val },
-  '<=': function (operands) { return (operands[0] <= operands[1]) ? val : !val }
+  '<=': function (operands) { return (operands[0] <= operands[1]) ? val : !val },
+  '=': function (operands) { return (operands[0] === operands[1]) ? val : !val }
 }
 
 const numberParse = numberInput => {
@@ -35,8 +36,19 @@ const numberParse = numberInput => {
     return [num[0] * 1, numberInput.slice(index)]
   } else return null
 }
+
+const stringParser = string => {
+  let alphabets = /^[a-zA-Z]+/
+  if (alphabets.test(string)) {
+    let match = string.match(alphabets)
+    let index = match[0].length
+    return [match[0], string.slice(index)]
+  }
+}
+
 const operatorParse = op => {
   let symbol
+  console.log(op)
   if (op[1] !== ' ') {
     symbol = op[0] + op[1]
     op = op.slice(2)
@@ -55,19 +67,34 @@ const expressionParse = expr => {
     expr = expr.slice(1)
     while (expr[0] !== ')') {
       expr = expr.trim()
+      // console.log(expr)
+      if (expr.startsWith('begin')) expr = beginParse(expr)
       resultArr = allParser(expr)
+       console.log(resultArr)
       if (resultArr === null) return null
       if (obj.hasOwnProperty(resultArr[0])) operator = obj[resultArr[0]]
       else opArr.push(resultArr[0])
       expr = resultArr[1].trim()
-      if (expr[0] === ' ') {
+      // console.log(expr)
+      if (expr.startsWith(' ')) {
         resultArr = expr.slice(1)
         expr = resultArr.trim()
         if (expr.startsWith(')')) return null
       }
     }
-    return [operator(opArr), expr.slice(1)]
+    return ([operator(opArr), expr.slice(1)])
   } else return null
 }
-
-console.log(expressionParse('(+ (+ 1 2)(* 1 2))'))
+const beginParse = (expr) => {
+  expr = expr.slice(5)
+  // console.log(expr)
+  let arr = []
+  while (!expr.startsWith(')')) {
+    // console.log(expr)
+    let res = expressionParse(expr)
+    arr.push(res[0])
+    expr = res[1]
+  }
+  // console.log(arr)
+}
+(expressionParse('(begin (+ 3 4) (* 2 4))'))
