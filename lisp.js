@@ -3,7 +3,7 @@ let val = true
 let abs
 let key
 let allParser = allParserInput => {
-  let parseAll = [numberParse, operatorParse, evaluateParse, stringParser]
+  let parseAll = [evaluateParse, numberParse, operatorParse, stringParser]
   for (let key of parseAll) {
     let resArr = key(allParserInput)
     if (resArr !== null) return resArr
@@ -12,10 +12,10 @@ let allParser = allParserInput => {
 }
 
 const obj = {
-  '+': function (operands) { return operands.reduce((item, acc) => (item + acc)) },
-  '-': function (operands) { return operands.reduce((item, acc) => (item - acc)) },
-  '*': function (operands) { return operands.reduce((item, acc) => (item * acc)) },
-  '/': function (operands) { return operands.reduce((item, acc) => (item / acc)) },
+  '+': function (operands) { return operands.reduce((acc, item) => (acc + item)) },
+  '-': function (operands) { return operands.reduce((acc, item) => (acc - item)) },
+  '*': function (operands) { return operands.reduce((acc, item) => (acc * item)) },
+  '/': function (operands) { return operands.reduce((acc, item) => (acc / item)) },
   '>': function (operands) { return (operands[0] > operands[1]) ? val : !val },
   '<': function (operands) { return (operands[0] < operands[1]) ? val : !val },
   '>=': function (operands) { return (operands[0] >= operands[1]) ? val : !val },
@@ -59,17 +59,17 @@ const operatorParse = op => {
   else return null
 }
 const evaluateParse = expr => {
-  let result
   if (expr.startsWith('(')) {
     expr = expr.trim()
     expr = expr.slice(1)
     if (expr.startsWith('begin')) {
-      result = beginParse(expr)
-      let n = result.length - 1
-      return result[n]
+      return beginParse(expr)
     }
     if (expr.startsWith('define')) {
       return defineParse(expr)
+    }
+    if (expr.startsWith('if')) {
+      return ifParse(expr)
     } else {
       return expressionParse(expr)
     }
@@ -86,14 +86,14 @@ const expressionParse = expr => {
     if (obj.hasOwnProperty(resultArr[0]) && ((typeof obj[resultArr[0]]) === 'function')) operator = obj[resultArr[0]]
     if (obj.hasOwnProperty(resultArr[0]) && ((typeof obj[resultArr[0]]) === 'number')) opArr.push(obj[resultArr[0]])
     if (!obj.hasOwnProperty(resultArr[0])) opArr.push(resultArr[0])
-    expr = resultArr[1].trim()
+    expr = resultArr[1]
+    if (expr === '') return 'Invalid'
     if (expr.startsWith(' ')) {
-      resultArr = expr.slice(1)
-      expr = resultArr.trim()
+      expr = expr.slice(1)
       if (expr.startsWith(')')) return null
     }
   }
-  return ([operator(opArr), expr.slice(1)])
+  return [operator(opArr), expr.slice(1)]
 }
 
 const beginParse = (expr) => {
@@ -101,11 +101,12 @@ const beginParse = (expr) => {
   let arr = []
   while (!expr.startsWith(')')) {
     expr = expr.trim()
-    let res = evaluateParse(expr)
+    let res = allParser(expr)
     arr.push(res[0])
     expr = res[1]
   }
-  return arr
+  let n = arr.length - 1
+  return arr[n]
 }
 const defineParse = (expr) => {
   expr = expr.slice(6)
@@ -114,15 +115,20 @@ const defineParse = (expr) => {
   let r = allParser(expr)
   key = r[0]
   let val = r[1].trim()
-  if (!val.startsWith('(')) res = numberParse(val)
-  else {
-    expr = val.slice(1)
-    res = expressionParse(expr)
-  }
+  res = allParser(val)
   obj[key] = res[0]
   while (!expr.startsWith(')')) expr = expr.slice(1)
   expr = expr.slice(1)
   expr = expr.trim()
   return ['Added value in obj', expr]
 }
-console.log(evaluateParse('(begin (define val 10) (* val val))'))
+const ifParse = (expr) => {
+  expr = expr.slice(2)
+  expr = expr.trim()
+  let res = evaluateParse(expr)
+  let boolean = res[0]
+  let value = allParser((res[1].trim()))
+  if (boolean === true) return value[0]
+  else return ((allParser(value[1].trim()))[0])
+}
+console.log(evaluateParse('(begin (define r 10) (* r 3)))'))
