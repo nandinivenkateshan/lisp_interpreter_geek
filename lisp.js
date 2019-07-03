@@ -89,7 +89,7 @@ const expressionParse = expr => {
     if (obj.hasOwnProperty(resultArr[0]) && ((typeof obj[resultArr[0]]) === 'number')) opArr.push(obj[resultArr[0]])
     if (!obj.hasOwnProperty(resultArr[0])) opArr.push(resultArr[0])
     expr = resultArr[1]
-    if (expr === '') return 'Invalid'
+    if (expr === '') return ['Invalid']
     if (expr.startsWith(' ')) {
       expr = expr.slice(1)
       if (expr.startsWith(')')) return null
@@ -134,8 +134,27 @@ const ifParse = (expr) => {
   expr = expr.trim()
   let res = evaluateParse(expr)
   let boolean = res[0]
-  let value = allParser((res[1].trim()))
-  if (boolean === true) return value[0]
-  else return ((allParser(value[1].trim()))[0])
+  let condition = res[1].trim()
+  if (!condition.startsWith('(')) {
+    let value = allParser(condition)
+    if (boolean === true) return value[0]
+    else return ((allParser(value[1].trim()))[0])
+  } else {
+    let index
+    let openBrac = 0
+    let closeBrac = 0
+    for (let i = 0; i < condition.length; i++) {
+      if (condition[i] === '(') openBrac++
+      if (condition[i] === ')') closeBrac++
+      if (openBrac === closeBrac) {
+        index = i
+        break
+      }
+    }
+    let condition1 = condition.slice(0, index + 1)
+    let condition2 = condition.slice(index + 2, condition.length - 1)
+    if (boolean === true) return allParser(condition1)
+    else return allParser(condition2)
+  }
 }
-console.log(evaluateParse('(begin (begin (begin 12 10 (+ 1 13))))'))
+console.log(evaluateParse('(if (< 3 2) (begin (+ 12 2) (- 30 23)) (begin (+ 1 1) (+ 2 12)))'))
