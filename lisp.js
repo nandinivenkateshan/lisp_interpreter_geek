@@ -1,11 +1,10 @@
 
-let val = true
-let abs
-let key
-let allParser = allParserInput => {
-  let parseAll = [evaluateParse, numberParse, operatorParse, stringParser]
-  for (let key of parseAll) {
-    let resArr = key(allParserInput)
+let booleanVal = true
+let beginresult
+const allParser = allParserInput => {
+  let parseAll = [numberParse, evaluateParse, operatorParse, stringParser]
+  for (let keyVal of parseAll) {
+    let resArr = keyVal(allParserInput)
     if (resArr !== null) return resArr
   }
   return null
@@ -16,11 +15,12 @@ const obj = {
   '-': function (operands) { return operands.reduce((acc, item) => (acc - item)) },
   '*': function (operands) { return operands.reduce((acc, item) => (acc * item)) },
   '/': function (operands) { return operands.reduce((acc, item) => (acc / item)) },
-  '>': function (operands) { return (operands[0] > operands[1]) ? val : !val },
-  '<': function (operands) { return (operands[0] < operands[1]) ? val : !val },
-  '>=': function (operands) { return (operands[0] >= operands[1]) ? val : !val },
-  '<=': function (operands) { return (operands[0] <= operands[1]) ? val : !val },
-  '=': function (operands) { return (operands[0] === operands[1]) ? val : !val }
+  '>': function (operands) { return (operands[0] > operands[1]) ? booleanVal : !booleanVal },
+  '<': function (operands) { return (operands[0] < operands[1]) ? booleanVal : !booleanVal },
+  '>=': function (operands) { return (operands[0] >= operands[1]) ? booleanVal : !booleanVal },
+  '<=': function (operands) { return (operands[0] <= operands[1]) ? booleanVal : !booleanVal },
+  '=': function (operands) { return (operands[0] === operands[1]) ? booleanVal : !booleanVal },
+  pi: 3.141592653589793
 }
 
 const numberParse = numberInput => {
@@ -63,7 +63,8 @@ const evaluateParse = expr => {
     expr = expr.trim()
     expr = expr.slice(1)
     if (expr.startsWith('begin')) {
-      return beginParse(expr)
+      beginresult = beginParse(expr)
+      return beginresult
     }
     if (expr.startsWith('define')) {
       return defineParse(expr)
@@ -75,6 +76,7 @@ const evaluateParse = expr => {
     }
   } else return null
 }
+
 const expressionParse = expr => {
   let resultArr
   let operator
@@ -97,20 +99,24 @@ const expressionParse = expr => {
 }
 
 const beginParse = (expr) => {
+  let rs
   expr = expr.slice(5)
-  let arr = []
   while (!expr.startsWith(')')) {
     expr = expr.trim()
     let res = allParser(expr)
-    arr.push(res[0])
+    if (res[1] === undefined) return beginresult
+    if (res[1].startsWith(')')) {
+      rs = res[0]
+    }
     expr = res[1]
   }
-  let n = arr.length - 1
-  return arr[n]
+  return rs
 }
+
 const defineParse = (expr) => {
   expr = expr.slice(6)
   expr = expr.trim()
+  let key
   let res
   let r = allParser(expr)
   key = r[0]
@@ -122,6 +128,7 @@ const defineParse = (expr) => {
   expr = expr.trim()
   return ['Added value in obj', expr]
 }
+
 const ifParse = (expr) => {
   expr = expr.slice(2)
   expr = expr.trim()
@@ -131,4 +138,4 @@ const ifParse = (expr) => {
   if (boolean === true) return value[0]
   else return ((allParser(value[1].trim()))[0])
 }
-console.log(evaluateParse('(begin (define r 10) (* r 3)))'))
+console.log(evaluateParse('(begin (begin (begin 12 10 (+ 1 13))))'))
