@@ -1,4 +1,14 @@
 
+let booleanVal = true
+let beginresult
+const allParser = allParserInput => {
+  let parseAll = [numberParse, specialFormParser, operatorParse, stringParser]
+  for (let keyVal of parseAll) {
+    let resArr = keyVal(allParserInput)
+    if (resArr !== null) return resArr
+  }
+  return null
+}
 const env = {
   '+': function (operands) { return operands.reduce((acc, item) => (acc + item)) },
   '-': function (operands) { return operands.reduce((acc, item) => (acc - item)) },
@@ -11,15 +21,15 @@ const env = {
   '=': function (operands) { return (operands[0] === operands[1]) ? booleanVal : !booleanVal },
   pi: 3.141592653589793
 }
-let booleanVal = true
-let beginresult
-const allParser = allParserInput => {
-  let parseAll = [numberParse, specialFormParser, operatorParse, stringParser]
-  for (let keyVal of parseAll) {
-    let resArr = keyVal(allParserInput)
-    if (resArr !== null) return resArr
-  }
-  return null
+
+// --------------------------------S-Expression---
+
+const sExpression = expr => {
+  expr = expr.trim()
+  if (expr.startsWith('(')) return specialFormParser(expr)
+  if (numberParse(expr) !== null) return numberParse(expr)
+  if (stringParser(expr) !== null) return stringParser(expr)
+  else return null
 }
 
 // -------------------Number Parser---
@@ -48,7 +58,7 @@ const stringParser = string => {
     let match = string.match(alphabets)
     let index = match[0].length
     return [match[0], string.slice(index)]
-  }
+  } else return null
 }
 
 // --------------------------------Operator Parser---
@@ -62,16 +72,6 @@ const operatorParse = op => {
   }
   if (env.hasOwnProperty(op[0])) return [op[0], op.slice(1)]
   else return null
-}
-
-// --------------------------------S-Expression---
-
-const sExpression = expr => {
-  if (expr.startsWith('(')) return specialFormParser(expr)
-  else {
-    if (numberParse(expr) !== null) return numberParse(expr)
-    if (stringParser(expr) !== null) return stringParser(expr)
-  }
 }
 
 // --------------------------------Special Form Parser---
@@ -104,12 +104,12 @@ const expressionParse = expr => {
   while (!expr.startsWith(')')) {
     expr = expr.trim()
     resultArr = allParser(expr)
-    if (resultArr === null) return null
+    if (resultArr === null || resultArr === undefined) return null
     if (env.hasOwnProperty(resultArr[0]) && ((typeof env[resultArr[0]]) === 'function')) operator = env[resultArr[0]]
     if (env.hasOwnProperty(resultArr[0]) && ((typeof env[resultArr[0]]) === 'number')) opArr.push(env[resultArr[0]])
     if (!env.hasOwnProperty(resultArr[0])) opArr.push(resultArr[0])
     expr = resultArr[1]
-    if (expr === '') return ['Invalid']
+    if (expr === '') return null
     if (expr.startsWith(' ')) {
       expr = expr.slice(1)
       if (expr.startsWith(')')) return null
@@ -119,19 +119,19 @@ const expressionParse = expr => {
 }
 // --------------------------------begin parser---
 const beginParse = (expr) => {
-  let rs
   expr = expr.slice(5)
+  let arr = []
   while (!expr.startsWith(')')) {
     expr = expr.trim()
     let res = allParser(expr)
-    if (res === undefined) return 'Invalid'
-    if (res[1] === undefined) return beginresult
-    if (res[1].startsWith(')')) {
-      rs = res[0]
-    }
+    if (res === null) break
+    expr = expr.trim()
+    arr.push(res[0])
     expr = res[1]
+    if (expr === undefined) return res
   }
-  return rs
+  let n = arr.length - 1
+  return arr[n]
 }
 // --------------------------------define parser---
 const defineParse = (expr) => {
@@ -153,7 +153,7 @@ const defineParse = (expr) => {
 const ifParse = (expr) => {
   expr = expr.slice(2)
   expr = expr.trim()
-  let res = specialFormParser(expr)
+  let res = allParser(expr)
   let boolean = res[0]
   let condition = res[1].trim()
   if (!condition.startsWith('(')) {
@@ -178,4 +178,4 @@ const ifParse = (expr) => {
     else return allParser(condition2)
   }
 }
-console.log(sExpression('(begin (define x 30) (define y 40) (+ x y))'))
+console.log(sExpression('(begin (define r 10) (if (< r 20) (+ r r) (- r r)) '))
