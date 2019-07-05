@@ -2,7 +2,7 @@
 let booleanVal = true
 let beginresult
 const allParser = allParserInput => {
-  let parseAll = [numberParse, specialFormParser, operatorParse, stringParser]
+  let parseAll = [numberParse, sExpression, operatorParse, stringParser]
   for (let keyVal of parseAll) {
     let resArr = keyVal(allParserInput)
     if (resArr !== null) return resArr
@@ -22,11 +22,11 @@ const env = {
   pi: 3.141592653589793
 }
 
-// --------------------------------S-Expression---
+// -------------------------------Expression Parser---
 
-const sExpression = expr => {
+const expressionParser = expr => {
   expr = expr.trim()
-  if (expr.startsWith('(')) return specialFormParser(expr)
+  if (expr.startsWith('(')) return sExpression(expr)
   if (numberParse(expr) !== null) return numberParse(expr)
   if (stringParser(expr) !== null) return stringParser(expr)
   else return null
@@ -76,7 +76,7 @@ const operatorParse = op => {
 
 // --------------------------------Special Form Parser---
 
-const specialFormParser = expr => {
+const sExpression = expr => {
   if (expr.startsWith('(')) {
     expr = expr.trim()
     expr = expr.slice(1)
@@ -90,14 +90,14 @@ const specialFormParser = expr => {
     if (expr.startsWith('if')) {
       return ifParse(expr)
     } else {
-      return expressionParse(expr)
+      return arithmeticExpr(expr)
     }
   } else return null
 }
 
-// --------------------------------Arithmaetic Expression---
+// --------------------------------Arithmetic Expression---
 
-const expressionParse = expr => {
+const arithmeticExpr = expr => {
   let resultArr
   let operator
   let opArr = []
@@ -117,7 +117,7 @@ const expressionParse = expr => {
   }
   return [operator(opArr), expr.slice(1)]
 }
-// --------------------------------begin parser---
+// --------------------------------begin
 const beginParse = (expr) => {
   expr = expr.slice(5)
   let arr = []
@@ -133,7 +133,7 @@ const beginParse = (expr) => {
   let n = arr.length - 1
   return arr[n]
 }
-// --------------------------------define parser---
+// --------------------------------define
 const defineParse = (expr) => {
   expr = expr.slice(6)
   expr = expr.trim()
@@ -178,4 +178,4 @@ const ifParse = (expr) => {
     else return allParser(condition2)
   }
 }
-console.log(sExpression('(begin (define r 10) (if (< r 20) (+ r r) (- r r)) '))
+console.log(expressionParser('(begin (define e 1) (+ e 3))'))
