@@ -19,7 +19,8 @@ const env = {
   '>=': function (operands) { return (operands[0] >= operands[1]) ? booleanVal : !booleanVal },
   '<=': function (operands) { return (operands[0] <= operands[1]) ? booleanVal : !booleanVal },
   '=': function (operands) { return (operands[0] === operands[1]) ? booleanVal : !booleanVal },
-  pi: 3.141592653589793
+  pi: 3.141592653589793,
+  'sqrt': function (operand) { return Math.sqrt(operand) }
 }
 
 // -------------------------------Expression Parser---
@@ -178,4 +179,21 @@ const ifParse = (expr) => {
     else return allParser(condition2)
   }
 }
-console.log(expressionParser('(begin (define e 1) (+ e 3))'))
+// console.log(expressionParser('ABCD'))
+// console.log(expressionParser('1456'))
+// console.log(expressionParser('+ 4 5'))
+// console.log(expressionParser('(+ 1 3 4 6 8 9)'))
+// console.log(expressionParser('(begin (define r 10)(* pi (* r r)))'))
+// console.log(expressionParser('(if (> 10 20) (+ 1 1) (+ 3 3))'))
+// console.log(expressionParser('(if (< (* 11 11) 120) (* 7 6) oops)'))
+// console.log(expressionParser('(begin (define e 1) (+ e 3))'))
+// console.log(expressionParser('(begin (begin (define x 12) (define y 1) (+ x y)))'))
+// console.log(expressionParser('(begin (define x 12) (define y 1) (if (> x y) (+ (+ x y) (* x y) (* x y)))'))
+// console.log(expressionParser('(/ 10 12)'))
+// console.log(expressionParser('(* pi 4 3)'))
+// console.log(expressionParser('(define define 10)'))
+// console.log(expressionParser('(+ define 10)'))
+// console.log(expressionParser('(* (+ define 10) 10 2)'))
+// console.log(expressionParser('(define length define)'))
+// console.log(expressionParser('(+ length (/ 100000 100))'))
+console.log(expressionParser('(sqrt 3)'))
