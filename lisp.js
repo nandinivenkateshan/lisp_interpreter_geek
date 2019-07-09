@@ -17,7 +17,7 @@ const env = {
     else return operands.reduce((acc, item) => (acc / item))
   },
   '>': (left, right) => left > right,
-  '<': (left, right) => left > right,
+  '<': (left, right) => left < right,
   '>=': (left, right) => left >= right,
   '<=': (left, right) => left <= right,
   '=': (left, right) => left === right,
@@ -30,6 +30,8 @@ const env = {
 const expressionParser = expr => {
   expr = expr.trim()
   if (expr.startsWith('(')) return sExpression(expr)
+  if (numberParse(expr) !== null) return numberParse(expr)
+  if (identifierParser(expr) !== null) return identifierParser(expr)
   else return null
 }
 
@@ -130,10 +132,10 @@ const defineParse = expr => {
   expr = expr.trim()
   let key
   let res
-  let r = identifierParser(expr)
-  if (r === null && env['define']) return env['define']
-  key = r[0]
-  let val = r[1].trim()
+  let result = identifierParser(expr)
+  if (result === null && env['define']) return env['define']
+  key = result[0]
+  let val = result[1].trim()
   if (val.startsWith('(')) res = allParser(val)
   res = arithmeticExpr(val)
   env[key] = res[0]
@@ -147,13 +149,13 @@ const defineParse = expr => {
 const ifParse = expr => {
   expr = expr.slice(2)
   expr = expr.trim()
-  let res = allParser(expr)
-  let boolean = res[0]
+  let res = expressionParser(expr)
+  let firstValue = res[0]
   let condition = res[1].trim()
   if (!condition.startsWith('(')) {
-    let value = allParser(condition)
-    if (boolean === true) return value[0]
-    else return ((allParser(value[1].trim()))[0])
+    let value = expressionParser(condition)
+    if (firstValue === true) return [value[0]]
+    else return ((expressionParser(value[1].trim())))
   } else {
     let index
     let openBrac = 0
@@ -168,24 +170,24 @@ const ifParse = expr => {
     }
     let condition1 = condition.slice(0, index + 1)
     let condition2 = condition.slice(index + 2, condition.length - 1)
-    if (boolean === true) return allParser(condition1)
-    else return allParser(condition2)
+    if (firstValue === true) return allParser(condition1)
+    else return expressionParser(condition2)
   }
 }
 console.log(expressionParser('(begin (define define 10))'))
 console.log(expressionParser('(define)'))
-console.log(expressionParser('(x)'))
 console.log(expressionParser('(+ (+ 4 5) (- 16 4))'))
 console.log(expressionParser('(* 1)'))
 console.log(expressionParser('(/ 10)'))
 console.log(expressionParser('(/ 40 40)'))
 console.log(expressionParser('(+ 1 3 4 6 8 9)'))
 console.log(expressionParser('(begin (define r 10)(* pi (* r r)))'))
-console.log(expressionParser('(if (> 10 20) (+ 1 1) (+ 3 3))'))
-console.log(expressionParser('(if (< (* 11 11) 120) (* 7 6) oops)'))
+console.log(expressionParser('(if (< 10 20) (+ 1 1) (+ 3 3))'))
+console.log(expressionParser('(if (> 10 20) true false'))
+console.log(expressionParser('(if (< (+ 11 130) 120) (* 7 6) oops)'))
 console.log(expressionParser('(begin (define e 1) (+ e 3))'))
 console.log(expressionParser('(begin (begin (define x 12) (define y 1) (+ x y)))'))
-console.log(expressionParser('(begin (define x 12) (define y 1) (if (> x y) (+ (+ x y) (* x y) (* x y)))'))
+console.log(expressionParser('(begin (define x 12) (define y 1) (if (> x y) (+ x y 2) false)'))
 console.log(expressionParser('(define define 10)'))
 console.log(expressionParser('(+ define 10)'))
 console.log(expressionParser('(define length define)'))
