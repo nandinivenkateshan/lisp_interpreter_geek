@@ -1,11 +1,3 @@
-const exprParser = input => {
-  let parser = [numberParse, expressionParse, operatorParse, identifierParser]
-  for (let parserFunc of parser) {
-    let result = parserFunc(input)
-    if (result !== null) return result
-  }
-  return null
-}
 
 const env = {
   '+': (...operands) => operands.reduce((acc, item) => (acc + item)),
@@ -39,26 +31,11 @@ const numberParse = numberInput => {
   } else return null
 }
 
-const operatorParse = input => {
-  let op = input.slice(0, input.indexOf(' '))
-  if (!env[op]) return null
-  return [op, input.slice(op.length)]
-}
-
-const identifierParser = string => {
-  let alphabets = /^[a-zA-Z]+/
-  if (alphabets.test(string)) {
-    let match = string.match(alphabets)
-    let index = match[0].length
-    return [match[0], string.slice(index)]
-  } else return null
-}
-
 const sExpression = expr => {
   expr = expr.trim()
   if (expr.startsWith('(')) {
-    if (expressionParse(expr) !== null) return expressionParse(expr)
     if (specialFormParser(expr) !== null) return specialFormParser(expr)
+    if (expressionParse(expr) !== null) return expressionParse(expr)
   } else return null
 }
 
@@ -79,6 +56,28 @@ const specialFormParser = expr => {
   if (firstVal === 'define') return defineParser(expr)
   else return null
 }
+const exprParser = input => {
+  let parser = [numberParse, expressionParse, operatorParse, identifierParser]
+  for (let parserFunc of parser) {
+    let result = parserFunc(input)
+    if (result !== null) return result
+  }
+  return null
+}
+const operatorParse = input => {
+  let op = input.slice(0, input.indexOf(' '))
+  if (!env[op]) return null
+  return [op, input.slice(op.length)]
+}
+
+const identifierParser = string => {
+  let alphabets = /^[a-zA-Z]+/
+  if (alphabets.test(string)) {
+    let match = string.match(alphabets)
+    let index = match[0].length
+    return [match[0], string.slice(index)]
+  } else return null
+}
 
 const defineParser = expr => {
   expr = expr.slice(6)
@@ -86,11 +85,12 @@ const defineParser = expr => {
   let key
   let res
   let result = identifierParser(expr)
-  if (result === null && env['define']) return env['define']
+  if (result === null) return null
   key = result[0]
   let val = result[1].trim()
   if (val.startsWith('(')) res = sExpression(val)
-  res = arithmeticParser(val)
+  res = exprParser(val)
+  if (res[0] === 'define') return env['define']
   env[key] = res[0]
   while (!expr.startsWith(')')) expr = expr.slice(1)
   expr = expr.slice(1)
@@ -164,23 +164,22 @@ const ifParser = (expr) => {
     else return exprParser(condition2)
   }
 }
-
-// console.log(sExpression('(define define 10)'))
-// console.log(sExpression('(define define define)'))
-// console.log(sExpression('(define r 23)'))
-//  console.log(sExpression('(+ r r)'))
-// console.log(sExpression('(+ (+ 4 5) (- 16 4))'))
-//  console.log(sExpression('(* 1)'))
-// console.log(sExpression('(/ 40)'))
-// console.log(sExpression('(/ 40 400)'))
-// console.log(sExpression('(+ 1 3 4 6 8 9)'))
-// console.log(sExpression('(begin (begin (+ 1 2) (+ 3 7)))'))
-// console.log(sExpression('(begin (define r 10)(* pi (* r r)))'))
-// console.log(sExpression('(if (< 10 20) (+ 1 1) (+ 3 3))'))
-// console.log(sExpression('(if (> (* 11 11) 120) (* 7 6) oops)'))
-// console.log(sExpression('(begin (define e 1) (+ e 3))'))
-// console.log(sExpression('(begin (begin (define x 12) (define y 1) (+ x y)))'))
-// console.log(sExpression('(begin (define x 12) (define y 1) (if (< x y) (+ (+ x y) (* x y)) (* x y)))'))
-// console.log(sExpression('(/ 10 12)'))
-// console.log(sExpression('(* pi 4 3)'))
-// console.log(sExpression('(+ 10 (sqrt 100))'))
+console.log(sExpression('(define define (+ 10 10))'))
+console.log(sExpression('(define define define define)'))
+console.log(sExpression('(define r 23)'))
+console.log(sExpression('(+ r r)'))
+console.log(sExpression('(+ (+ 4 5) (- 16 4))'))
+console.log(sExpression('(* 1)'))
+console.log(sExpression('(/ 40)'))
+console.log(sExpression('(/ 40 400)'))
+console.log(sExpression('(+ 1 3 4 6 8 9)'))
+console.log(sExpression('(begin (begin (+ 1 2) (+ 3 7)))'))
+console.log(sExpression('(begin (define r 10)(* pi (* r r)))'))
+console.log(sExpression('(if (< 10 20) (+ 1 1) (+ 3 3))'))
+console.log(sExpression('(if (> (* 11 11) 120) (* 7 6) oops)'))
+console.log(sExpression('(begin (define e 1) (+ e 3))'))
+console.log(sExpression('(begin (begin (define x 12) (define y 1) (+ x y)))'))
+console.log(sExpression('(begin (define x 12) (define y 1) (if (< x y) (+ (+ x y) (* x y)) (* x y)))'))
+console.log(sExpression('(/ 10 12)'))
+console.log(sExpression('(* pi 4 3)'))
+console.log(sExpression('(+ 10 (sqrt 100))'))
