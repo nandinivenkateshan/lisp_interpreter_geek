@@ -1,41 +1,39 @@
 
-const exprParser = input => {
-  let parseAll = [numberParse, operatorParse, ifParse, beginParse, identifierParser]
+let booleanVal = true
+let beginresult
+const allParser = allParserInput => {
+  let parseAll = [numberParse, sExpression, operatorParse, stringParser]
   for (let keyVal of parseAll) {
-    let resArr = keyVal(input)
+    let resArr = keyVal(allParserInput)
     if (resArr !== null) return resArr
   }
   return null
 }
-
 const env = {
-  '+': (...operands) => operands.reduce((acc, item) => (acc + item)),
-  '-': (...operands) => operands.reduce((acc, item) => (acc - item)),
-  '*': (...operands) => operands.reduce((acc, item) => (acc * item)),
-  '/': (...operands) => {
+  '+': function (operands) { return operands.reduce((acc, item) => (acc + item)) },
+  '-': function (operands) { return operands.reduce((acc, item) => (acc - item)) },
+  '*': function (operands) { return operands.reduce((acc, item) => (acc * item)) },
+  '/': function (operands) {
     if (operands.length === 1) return 1 / operands[0]
     else return operands.reduce((acc, item) => (acc / item))
   },
-  '>': (left, right) => left > right,
-  '<': (left, right) => left > right,
-  '>=': (left, right) => left >= right,
-  '<=': (left, right) => left <= right,
-  '=': (left, right) => left === right,
-  pi: Math.pi,
-  'sqrt': (...operand) => Math.sqrt(operand)
+  '>': function (operands) { return (operands[0] > operands[1]) ? booleanVal : !booleanVal },
+  '<': function (operands) { return (operands[0] < operands[1]) ? booleanVal : !booleanVal },
+  '>=': function (operands) { return (operands[0] >= operands[1]) ? booleanVal : !booleanVal },
+  '<=': function (operands) { return (operands[0] <= operands[1]) ? booleanVal : !booleanVal },
+  '=': function (operands) { return (operands[0] === operands[1]) ? booleanVal : !booleanVal },
+  pi: 3.141592653589793,
+  'sqrt': function (operand) { return Math.sqrt(operand) }
 }
 
 // -------------------------------Expression Parser---
 
-const sExpressionParser = expr => {
+const expressionParser = expr => {
   expr = expr.trim()
-  if (expr.startsWith('(')) {
-    expr = expr.slice(1)
-    expr = expr.trim()
-    if (defineParse(expr) !== null) return defineParse(expr)
-    if (expressionParser(expr) !== null) return expressionParser(expr)
-  }
-  return null
+  if (expr.startsWith('(')) return sExpression(expr)
+  if (numberParse(expr) !== null) return numberParse(expr)
+  if (stringParser(expr) !== null) return stringParser(expr)
+  else return null
 }
 
 // -------------------Number Parser---
@@ -43,7 +41,7 @@ const sExpressionParser = expr => {
 const numberParse = numberInput => {
   let zeroNum = /^[-]?0([eE][+-]?[0-9]+)/
   let decimalInfinity = /^[-]?[0-9][0-9]*(\.?[0-9]*([eE][+-]?[0-9]+)?)?/
-  // console.log(numberInput)
+
   if (zeroNum.test(numberInput)) {
     let num = numberInput.match(zeroNum)
     let index = num[0].length
@@ -56,9 +54,9 @@ const numberParse = numberInput => {
   } else return null
 }
 
-// --------------------------------Identifier Parser---
+// --------------------------------String Parser---
 
-const identifierParser = string => {
+const stringParser = string => {
   let alphabets = /^[a-zA-Z]+/
   if (alphabets.test(string)) {
     let match = string.match(alphabets)
@@ -69,21 +67,35 @@ const identifierParser = string => {
 
 // --------------------------------Operator Parser---
 
-const operatorParse = input => {
-  let op = input.slice(0, input.indexOf(' '))
-  if (!env[op]) return null
-  return [op, input.slice(1)]
+const operatorParse = op => {
+  let symbol
+  if (op[1] !== ' ') {
+    symbol = op[0] + op[1]
+    op = op.slice(2)
+    if (env.hasOwnProperty(symbol)) return [symbol, op]
+  }
+  if (env.hasOwnProperty(op[0])) return [op[0], op.slice(1)]
+  else return null
 }
 
-// --------------------------------Expression Parser---
-const expressionParser = expr => {
-  let firstVal = expr.slice(0, expr.indexOf(' '))
-  if (operatorParse(expr) !== null) return arithmeticExpr(expr)
-  if (firstVal === 'begin') {
-    return beginParse(expr)
-  }
-  if (firstVal === 'if') {
-    return ifParse(expr)
+// --------------------------------Special Form Parser---
+
+const sExpression = expr => {
+  if (expr.startsWith('(')) {
+    expr = expr.trim()
+    expr = expr.slice(1)
+    if (expr.startsWith('begin')) {
+      beginresult = beginParse(expr)
+      return beginresult
+    }
+    if (expr.startsWith('define')) {
+      return defineParse(expr)
+    }
+    if (expr.startsWith('if')) {
+      return ifParse(expr)
+    } else {
+      return arithmeticExpr(expr)
+    }
   } else return null
 }
 
@@ -95,8 +107,7 @@ const arithmeticExpr = expr => {
   let opArr = []
   while (!expr.startsWith(')')) {
     expr = expr.trim()
-    resultArr = exprParser(expr)
-    // console.log(resultArr)
+    resultArr = allParser(expr)
     if (resultArr === null || resultArr === undefined) return null
     if (env.hasOwnProperty(resultArr[0]) && ((typeof env[resultArr[0]]) === 'function')) operator = env[resultArr[0]]
     if (env.hasOwnProperty(resultArr[0]) && ((typeof env[resultArr[0]]) === 'number')) opArr.push(env[resultArr[0]])
@@ -108,7 +119,7 @@ const arithmeticExpr = expr => {
       if (expr.startsWith(')')) return null
     }
   }
-  return [operator(...opArr), expr.slice(1)]
+  return [operator(opArr), expr.slice(1)]
 }
 // --------------------------------begin
 const beginParse = (expr) => {
@@ -116,7 +127,7 @@ const beginParse = (expr) => {
   let arr = []
   while (!expr.startsWith(')')) {
     expr = expr.trim()
-    let res = exprParser(expr)
+    let res = allParser(expr)
     if (res === null) break
     expr = expr.trim()
     arr.push(res[0])
@@ -128,36 +139,32 @@ const beginParse = (expr) => {
 }
 // --------------------------------define
 const defineParse = (expr) => {
-  expr = expr.slice(1)
-  expr = expr.trim()
-  let value = expr.slice(0, expr.indexOf(' '))
-  if (value !== 'define') return null
   expr = expr.slice(6)
   expr = expr.trim()
   let key
   let res
-  let result = identifierParser(expr)
-  if (result === null) return null
-  key = result[0]
-  let val = result[1].trim()
-  res = exprParser(val)
+  let r = allParser(expr)
+  key = r[0]
+  let val = r[1].trim()
+  res = allParser(val)
   env[key] = res[0]
   while (!expr.startsWith(')')) expr = expr.slice(1)
   expr = expr.slice(1)
   expr = expr.trim()
   return ['Added value in env', expr]
 }
+
 // --------------------------------if Parser---
 const ifParse = (expr) => {
   expr = expr.slice(2)
   expr = expr.trim()
-  let res = exprParser(expr)
+  let res = allParser(expr)
   let boolean = res[0]
   let condition = res[1].trim()
   if (!condition.startsWith('(')) {
-    let value = exprParser(condition)
+    let value = allParser(condition)
     if (boolean === true) return value[0]
-    else return ((exprParser(value[1].trim()))[0])
+    else return ((allParser(value[1].trim()))[0])
   } else {
     let index
     let openBrac = 0
@@ -172,21 +179,16 @@ const ifParse = (expr) => {
     }
     let condition1 = condition.slice(0, index + 1)
     let condition2 = condition.slice(index + 2, condition.length - 1)
-    if (boolean === true) return exprParser(condition1)
-    else return exprParser(condition2)
+    if (boolean === true) return allParser(condition1)
+    else return allParser(condition2)
   }
 }
-
-// console.log(sExpressionParser('(define r 23)'))
-// console.log(sExpressionParser('(+ r r)'))
-// console.log(expressionParser('1456'))
-console.log(sExpressionParser('(+ (+ 4 5) (- 16 4))'))
-// console.log(expressionParser('(* 1)'))
-// console.log(expressionParser('(/ 40)'))
-// console.log(expressionParser('(/ 40 400)'))
+//console.log(expressionParser('ABCD'))
+//console.log(expressionParser('1456'))
+// console.log(expressionParser('+ 4 5'))
 // console.log(expressionParser('(+ 1 3 4 6 8 9)'))
-// console.log(expressionParser('(begin (define r 10)(* pi (* r r)))'))
-// console.log(sExpressionParser('(if (> 10 20) (+ 1 1) (+ 3 3))'))
+//console.log(expressionParser('(begin (define r 10)(* pi (* r r)))'))
+// console.log(expressionParser('(if (> 10 20) (+ 1 1) (+ 3 3))'))
 // console.log(expressionParser('(if (< (* 11 11) 120) (* 7 6) oops)'))
 // console.log(expressionParser('(begin (define e 1) (+ e 3))'))
 // console.log(expressionParser('(begin (begin (define x 12) (define y 1) (+ x y)))'))
@@ -199,3 +201,5 @@ console.log(sExpressionParser('(+ (+ 4 5) (- 16 4))'))
 // console.log(expressionParser('(define length define)'))
 // console.log(expressionParser('(+ length (/ 100000 100))'))
 // console.log(expressionParser('(+ 10 (sqrt 100))'))
+console.log(expressionParser('(define define 10)'))
+console.log(expressionParser('(+ define define)'))
