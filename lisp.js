@@ -32,7 +32,7 @@ const numberParse = numberInput => {
 }
 const evaluater = expr => {
   let result = sExpression(expr)
-  return result
+  return result[0]
 }
 const sExpression = expr => {
   expr = expr.trim()
@@ -75,7 +75,7 @@ const operatorParse = input => {
 }
 
 const identifierParser = string => {
-  let alphabets = /^[a-zA-Z]+/
+  let alphabets = /^[a-zA-Z]+[-]?[a-zA-z]*/
   if (alphabets.test(string)) {
     let match = string.match(alphabets)
     let index = match[0].length
@@ -105,17 +105,15 @@ const defineParser = expr => {
 const lambdaParser = expr => {
   expr = expr.slice(6).trim()
   let local = {}
-  local.obj = {}
-  local.obj.parent = env
   if (expr.startsWith('(')) expr = expr.slice(1)
   while (!expr.startsWith(')')) {
     let result = identifierParser(expr)
-    local.obj[result[0]] = null
+    local[result[0]] = null
     expr = result[1]
   }
   expr = expr.slice(1).trim()
-  local.obj.expression = expr
-  return [local, local.obj.expression]
+  local.expression = expr
+  return [local, local.expression]
 }
 const arithmeticParser = expr => {
   let resultArr
@@ -138,7 +136,16 @@ const arithmeticParser = expr => {
   }
   if (!operator) return [...opArr, expr.slice(1)]
   if (typeof operator === 'object') {
-    console.log(operator)
+    let arg = Object.keys(operator)[0]
+    let expression = [Object.keys(operator)[1]]
+    operator[arg] = opArr[0]
+    let val = (operator[expression]).split('')
+    let res = val.map(item => {
+      if (item === arg) item = operator[arg]
+      return item
+    })
+    let result = res.join('')
+    return sExpression(result)
   }
   if (typeof operator === 'function') return [operator(...opArr), expr.slice(1)]
 }
@@ -187,5 +194,5 @@ const ifParser = (expr) => {
     else return exprParser(condition2)
   }
 }
-console.log(evaluater('(define twice (lambda (x) (* 2 x)))'))
-console.log(evaluater('(twice 5)'))
+console.log(evaluater(' (define circle-area (lambda (r) (* pi (* r r))))'))
+console.log(evaluater('(circle-area 5)'))
