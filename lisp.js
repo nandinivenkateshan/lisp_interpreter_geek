@@ -61,7 +61,7 @@ const specialFormParser = expr => {
   else return null
 }
 const exprParser = input => {
-  let parser = [numberParse, operatorParse, expressionParse, identifierParser]
+  let parser = [numberParse, operatorParse, identifierParser, expressionParse]
   for (let parserFunc of parser) {
     let result = parserFunc(input)
     if (result !== null) return result
@@ -128,6 +128,7 @@ const arithmeticParser = expr => {
     if (env.hasOwnProperty(resultArr[0]) && ((typeof env[resultArr[0]]) === 'object')) operator = env[resultArr[0]]
     if (!env.hasOwnProperty(resultArr[0])) opArr.push(resultArr[0])
     expr = resultArr[1]
+    console.log(expr)
     if (expr === '') return null
     if (expr.startsWith(' ')) {
       expr = expr.slice(1)
@@ -145,6 +146,7 @@ const arithmeticParser = expr => {
       return item
     })
     let result = res.join('')
+    //console.log(result)
     return sExpression(result)
   }
   if (typeof operator === 'function') return [operator(...opArr), expr.slice(1)]
@@ -195,8 +197,8 @@ const ifParser = (expr) => {
   }
 }
 
-// console.log(evaluater('(define fact (lambda (n) (if (< n 1) 1 (* n (fact (- n 1))))))'))
-// console.log(evaluater('(fact 4)'))
+console.log(evaluater('(define fact (lambda (n) (if (< n 1) 1 (* n (fact (- n 1))))))'))
+console.log(evaluater('(fact 4)'))
 // console.log(evaluater('(fact 1)'))
 // console.log(env)
 // console.log(evaluater('(if (<= 3 7) 1 oops)'))
@@ -209,8 +211,8 @@ const ifParser = (expr) => {
 // console.log(evaluater('(/ 40)'))
 // console.log(evaluater('(/ 40 400)'))
 // console.log(evaluater('(+ 1 3 4 6 8 9)'))
-//  console.log(evaluater('(begin (begin (+ 1 2) (+ 3 7)))'))
-//  console.log(evaluater('(begin (define r 10)(* pi (* r r)))'))
+// console.log(evaluater('(begin (begin (+ 1 2) (+ 3 7)))'))
+// console.log(evaluater('(begin (define r 10)(* pi (* r r)))'))
 // console.log(evaluater('(if (< 10 20) (+ 1 1) (+ 3 3))'))
 // console.log(evaluater('(if (< (* 11 11) 120) (* 7 6) oops)'))
 // console.log(evaluater('(begin (define e 1) (+ e 3))'))
@@ -219,4 +221,3 @@ const ifParser = (expr) => {
 // console.log(evaluater('(/ 10 12)'))
 // console.log(evaluater('(* pi 4 3)'))
 // console.log(evaluater('(+ 10 (sqrt 100))'))
-
