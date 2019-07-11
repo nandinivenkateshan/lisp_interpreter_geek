@@ -61,7 +61,7 @@ const specialFormParser = expr => {
   else return null
 }
 const exprParser = input => {
-  let parser = [numberParse, expressionParse, operatorParse, identifierParser]
+  let parser = [numberParse, operatorParse, expressionParse, identifierParser]
   for (let parserFunc of parser) {
     let result = parserFunc(input)
     if (result !== null) return result
@@ -94,7 +94,7 @@ const defineParser = expr => {
   let val = result[1].trim()
   if (val.startsWith('(')) res = sExpression(val)
   else res = exprParser(val)
-  if (res[0] === 'define') return env['define']
+  if (res[0] === 'define') return [env['define']]
   env[key] = res[0]
   expr = res[1]
   while (!expr.startsWith(')')) expr = expr.slice(1)
@@ -137,7 +137,7 @@ const arithmeticParser = expr => {
   if (!operator) return [...opArr, expr.slice(1)]
   if (typeof operator === 'object') {
     let arg = Object.keys(operator)[0]
-    let expression = [Object.keys(operator)[1]]
+    let expression = Object.keys(operator)[1]
     operator[arg] = opArr[0]
     let val = (operator[expression]).split('')
     let res = val.map(item => {
@@ -163,19 +163,19 @@ const beginParse = (expr) => {
     if (expr === undefined) return res
   }
   let n = arr.length - 1
-  return arr[n]
+  return [arr[n]]
 }
 
 const ifParser = (expr) => {
   expr = expr.slice(2)
   expr = expr.trim()
   let res = exprParser(expr)
-  let boolean = res[0]
+  let val = res[0]
   let condition = res[1].trim()
   if (!condition.startsWith('(')) {
     let value = exprParser(condition)
-    if (boolean === true) return value[0]
-    else return ((exprParser(value[1].trim()))[0])
+    if (val === true) return [value[0]]
+    else return ([(exprParser(value[1].trim()))[0]])
   } else {
     let index
     let openBrac = 0
@@ -190,9 +190,33 @@ const ifParser = (expr) => {
     }
     let condition1 = condition.slice(0, index + 1)
     let condition2 = condition.slice(index + 2, condition.length - 1)
-    if (boolean === true) return exprParser(condition1)
+    if (val === true) return exprParser(condition1)
     else return exprParser(condition2)
   }
 }
-console.log(evaluater(' (define circle-area (lambda (r) (* pi (* r r))))'))
-console.log(evaluater('(circle-area 5)'))
+
+// console.log(evaluater('(define fact (lambda (n) (if (< n 1) 1 (* n (fact (- n 1))))))'))
+// console.log(evaluater('(fact 4)'))
+// console.log(evaluater('(fact 1)'))
+// console.log(env)
+// console.log(evaluater('(if (<= 3 7) 1 oops)'))
+// console.log(evaluater('(define define 10)'))
+// console.log(evaluater('(define define define)'))
+// console.log(evaluater('(define r 23)'))
+// console.log(evaluater('(+ r r)'))
+// console.log(evaluater('(+ (+ 4 5) (- 16 4))'))
+// console.log(evaluater('(* 1)'))
+// console.log(evaluater('(/ 40)'))
+// console.log(evaluater('(/ 40 400)'))
+// console.log(evaluater('(+ 1 3 4 6 8 9)'))
+//  console.log(evaluater('(begin (begin (+ 1 2) (+ 3 7)))'))
+//  console.log(evaluater('(begin (define r 10)(* pi (* r r)))'))
+// console.log(evaluater('(if (< 10 20) (+ 1 1) (+ 3 3))'))
+// console.log(evaluater('(if (< (* 11 11) 120) (* 7 6) oops)'))
+// console.log(evaluater('(begin (define e 1) (+ e 3))'))
+// console.log(evaluater('(begin (begin (define x 12) (define y 1) (+ x y)))'))
+// console.log(evaluater('(begin (define x 12) (define y 1) (if (< x y) (+ (+ x y) (* x y)) (* x y)))'))
+// console.log(evaluater('(/ 10 12)'))
+// console.log(evaluater('(* pi 4 3)'))
+// console.log(evaluater('(+ 10 (sqrt 100))'))
+
