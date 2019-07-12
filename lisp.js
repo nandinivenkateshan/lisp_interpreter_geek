@@ -16,6 +16,12 @@ const env = {
   'sqrt': (...operand) => Math.sqrt(operand)
 }
 
+const booleanParse = booleanInput => {
+  if (booleanInput.startsWith('true')) return [true, booleanInput.slice(4)]
+  if (booleanInput.startsWith('false')) return [false, booleanInput.slice(5)]
+  return null
+}
+
 const numberParse = numberInput => {
   let zeroNum = /^[-]?0([eE][+-]?[0-9]+)/
   let decimalInfinity = /^[-]?[0-9][0-9]*(\.?[0-9]*([eE][+-]?[0-9]+)?)?/
@@ -61,7 +67,7 @@ const specialFormParser = expr => {
   else return null
 }
 const exprParser = input => {
-  let parser = [numberParse, operatorParse, identifierParser, expressionParse]
+  let parser = [numberParse, booleanParse, operatorParse, identifierParser, expressionParse]
   for (let parserFunc of parser) {
     let result = parserFunc(input)
     if (result !== null) return result
@@ -189,31 +195,30 @@ const ifParser = (expr) => {
     else return exprParser(condition2)
   }
 }
-
-//console.log(evaluater('(define plus +)'))
-//console.log(evaluater('(plus 10 20)'))
-//console.log(evaluater('(* s s)'))
-//console.log(evaluater('(define twice (lambda (x) (* 2 x)))'))
-// console.log(evaluater('(twice (twice (twice (twice (twice 5)))))'))
-// console.log(evaluater('(define circle-area (lambda (r) (* pi (* r r)))'))
-// console.log(evaluater('(circle-area (+ 5 5))'))
-// console.log(evaluater('(if (<= 3 7) 1 oops)'))
-// console.log(evaluater('(define define 10)'))
-// console.log(evaluater('(define define define)'))
-// console.log(evaluater('(define r 23)'))
-// console.log(evaluater('(+ r r)'))
-// console.log(evaluater('(+ (+ 4 5) (- 16 4))'))
-// console.log(evaluater('(* 1)'))
-// console.log(evaluater('(/ 40)'))
-// console.log(evaluater('(/ 40 400)'))
-// console.log(evaluater('(+ 1 3 4 6 8 9)'))
-// console.log(evaluater('(begin (begin (+ 1 2) (+ 3 7)))'))
-// console.log(evaluater('(begin (define r 10)(* pi (* r r)))'))
-// console.log(evaluater('(if (< 10 20) (+ 1 1) (+ 3 3))'))
-// console.log(evaluater('(if (< (* 11 11) 120) (* 7 6) oops)'))
-// console.log(evaluater('(begin (define e 1) (+ e 3))'))
-// console.log(evaluater('(begin (begin (define x 12) (define y 1) (+ x y)))'))
-// console.log(evaluater('(begin (define x 12) (define y 1) (if (< x y) (+ (+ x y) (* x y)) (* x y)))'))
-// console.log(evaluater('(/ 10 12)'))
-// console.log(evaluater('(* pi 4 3)'))
-// console.log(evaluater('(+ 10 (sqrt 100))'))
+console.log(evaluater('(if true 1 2)'))
+console.log(evaluater('(define plus +)'))
+console.log(evaluater('(plus 10 20)'))
+console.log(evaluater('(define twice (lambda (x) (* 2 x)))'))
+console.log(evaluater('(twice (twice (twice (twice (twice 5)))))'))
+console.log(evaluater('(define circle-area (lambda (r) (* pi (* r r)))'))
+console.log(evaluater('(circle-area (+ 5 5))'))
+console.log(evaluater('(if (<= 3 7) 1 oops)'))
+console.log(evaluater('(define define 10)'))
+console.log(evaluater('(define define define)'))
+console.log(evaluater('(define r 23)'))
+console.log(evaluater('(+ r r)'))
+console.log(evaluater('(+ (+ 4 5) (- 16 4))'))
+console.log(evaluater('(* 1)'))
+console.log(evaluater('(/ 40)'))
+console.log(evaluater('(/ 40 400)'))
+console.log(evaluater('(+ 1 3 4 6 8 9)'))
+console.log(evaluater('(begin (begin (+ 1 2) (+ 3 7)))'))
+console.log(evaluater('(begin (define r 10)(* pi (* r r)))'))
+console.log(evaluater('(if (< 10 20) (+ 1 1) (+ 3 3))'))
+console.log(evaluater('(if (< (* 11 11) 120) (* 7 6) oops)'))
+console.log(evaluater('(begin (define e 1) (+ e 3))'))
+console.log(evaluater('(begin (begin (define x 12) (define y 1) (+ x y)))'))
+console.log(evaluater('(begin (define x 12) (define y 1) (if (< x y) (+ (+ x y) (* x y)) (* x y)))'))
+console.log(evaluater('(/ 10 12)'))
+console.log(evaluater('(* pi 4 3)'))
+console.log(evaluater('(+ 10 (sqrt 100))'))
