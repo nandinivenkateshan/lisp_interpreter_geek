@@ -128,7 +128,6 @@ const arithmeticParser = expr => {
     if (env.hasOwnProperty(resultArr[0]) && ((typeof env[resultArr[0]]) === 'object')) operator = env[resultArr[0]]
     if (!env.hasOwnProperty(resultArr[0])) opArr.push(resultArr[0])
     expr = resultArr[1]
-    console.log(expr)
     if (expr === '') return null
     if (expr.startsWith(' ')) {
       expr = expr.slice(1)
@@ -140,13 +139,7 @@ const arithmeticParser = expr => {
     let arg = Object.keys(operator)[0]
     let expression = Object.keys(operator)[1]
     operator[arg] = opArr[0]
-    let val = (operator[expression]).split('')
-    let res = val.map(item => {
-      if (item === arg) item = operator[arg]
-      return item
-    })
-    let result = res.join('')
-    //console.log(result)
+    let result = operator[expression].split(arg).join(operator[arg])
     return sExpression(result)
   }
   if (typeof operator === 'function') return [operator(...opArr), expr.slice(1)]
@@ -196,28 +189,27 @@ const ifParser = (expr) => {
     else return exprParser(condition2)
   }
 }
-
-console.log(evaluater('(define fact (lambda (n) (if (< n 1) 1 (* n (fact (- n 1))))))'))
-console.log(evaluater('(fact 4)'))
-// console.log(evaluater('(fact 1)'))
-// console.log(env)
-// console.log(evaluater('(if (<= 3 7) 1 oops)'))
-// console.log(evaluater('(define define 10)'))
-// console.log(evaluater('(define define define)'))
-// console.log(evaluater('(define r 23)'))
-// console.log(evaluater('(+ r r)'))
-// console.log(evaluater('(+ (+ 4 5) (- 16 4))'))
-// console.log(evaluater('(* 1)'))
-// console.log(evaluater('(/ 40)'))
-// console.log(evaluater('(/ 40 400)'))
-// console.log(evaluater('(+ 1 3 4 6 8 9)'))
-// console.log(evaluater('(begin (begin (+ 1 2) (+ 3 7)))'))
-// console.log(evaluater('(begin (define r 10)(* pi (* r r)))'))
-// console.log(evaluater('(if (< 10 20) (+ 1 1) (+ 3 3))'))
-// console.log(evaluater('(if (< (* 11 11) 120) (* 7 6) oops)'))
-// console.log(evaluater('(begin (define e 1) (+ e 3))'))
-// console.log(evaluater('(begin (begin (define x 12) (define y 1) (+ x y)))'))
-// console.log(evaluater('(begin (define x 12) (define y 1) (if (< x y) (+ (+ x y) (* x y)) (* x y)))'))
-// console.log(evaluater('(/ 10 12)'))
-// console.log(evaluater('(* pi 4 3)'))
-// console.log(evaluater('(+ 10 (sqrt 100))'))
+console.log(evaluater('(define twice (lambda (x) (* 2 x)))'))
+console.log(evaluater('(twice 5)'))
+console.log(evaluater('(define circle-area (lambda (r) (* pi (* r r)))'))
+console.log(evaluater('(circle-area (+ 5 5))'))
+console.log(evaluater('(if (<= 3 7) 1 oops)'))
+console.log(evaluater('(define define 10)'))
+console.log(evaluater('(define define define)'))
+console.log(evaluater('(define r 23)'))
+console.log(evaluater('(+ r r)'))
+console.log(evaluater('(+ (+ 4 5) (- 16 4))'))
+console.log(evaluater('(* 1)'))
+console.log(evaluater('(/ 40)'))
+console.log(evaluater('(/ 40 400)'))
+console.log(evaluater('(+ 1 3 4 6 8 9)'))
+console.log(evaluater('(begin (begin (+ 1 2) (+ 3 7)))'))
+console.log(evaluater('(begin (define r 10)(* pi (* r r)))'))
+console.log(evaluater('(if (< 10 20) (+ 1 1) (+ 3 3))'))
+console.log(evaluater('(if (< (* 11 11) 120) (* 7 6) oops)'))
+console.log(evaluater('(begin (define e 1) (+ e 3))'))
+console.log(evaluater('(begin (begin (define x 12) (define y 1) (+ x y)))'))
+console.log(evaluater('(begin (define x 12) (define y 1) (if (< x y) (+ (+ x y) (* x y)) (* x y)))'))
+console.log(evaluater('(/ 10 12)'))
+console.log(evaluater('(* pi 4 3)'))
+console.log(evaluater('(+ 10 (sqrt 100))'))
