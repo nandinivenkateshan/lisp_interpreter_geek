@@ -15,6 +15,7 @@ const env = {
   pi: Math.PI,
   'sqrt': (...operand) => Math.sqrt(operand)
 }
+let localObject
 
 const booleanParse = booleanInput => {
   if (booleanInput.startsWith('true')) return [true, booleanInput.slice(4)]
@@ -52,7 +53,7 @@ const expressionParse = expr => {
   expr = expr.trim()
   expr = expr.slice(1)
   let firstVal = expr.slice(0, expr.indexOf(' '))
-  if (env.hasOwnProperty(firstVal)) return arithmeticParser(expr)
+  if (env.hasOwnProperty(firstVal)) return evaluateExpr(expr)
   if (firstVal === 'begin') return beginParse(expr)
   if (firstVal === 'if') return ifParser(expr)
   else return null
@@ -67,7 +68,7 @@ const specialFormParser = expr => {
   else return null
 }
 const exprParser = input => {
-  let parser = [numberParse, booleanParse, operatorParse, identifierParser, expressionParse]
+  let parser = [booleanParse, numberParse, symbolParse, operatorParse, identifierParser, expressionParse]
   for (let parserFunc of parser) {
     let result = parserFunc(input)
     if (result !== null) return result
@@ -110,18 +111,18 @@ const defineParser = expr => {
 }
 const lambdaParser = expr => {
   expr = expr.slice(6).trim()
-  let local = {}
+  localObject = {}
   if (expr.startsWith('(')) expr = expr.slice(1)
   while (!expr.startsWith(')')) {
     let result = identifierParser(expr)
-    local[result[0]] = null
+    localObject[result[0]] = null
     expr = result[1]
   }
   expr = expr.slice(1).trim()
-  local.expression = expr
-  return [local, local.expression]
+  localObject.expression = expr
+  return [localObject, localObject.expression]
 }
-const arithmeticParser = expr => {
+const evaluateExpr = expr => {
   let resultArr
   let operator
   let opArr = []
@@ -129,11 +130,13 @@ const arithmeticParser = expr => {
     expr = expr.trim()
     resultArr = exprParser(expr)
     if (resultArr === null || resultArr === undefined) return null
+    if (env.hasOwnProperty(resultArr[0]) && (typeof env[resultArr[0]] === 'object')) return lambdaEval(resultArr)
     if (env.hasOwnProperty(resultArr[0]) && ((typeof env[resultArr[0]]) === 'function')) operator = env[resultArr[0]]
     if (env.hasOwnProperty(resultArr[0]) && ((typeof env[resultArr[0]]) === 'number')) opArr.push(env[resultArr[0]])
-    if (env.hasOwnProperty(resultArr[0]) && ((typeof env[resultArr[0]]) === 'object')) operator = env[resultArr[0]]
     if (!env.hasOwnProperty(resultArr[0])) opArr.push(resultArr[0])
+   // console.log(resultArr)
     expr = resultArr[1]
+   // console.log(expr)
     if (expr === '') return null
     if (expr.startsWith(' ')) {
       expr = expr.slice(1)
@@ -141,14 +144,34 @@ const arithmeticParser = expr => {
     }
   }
   if (!operator) return [...opArr, expr.slice(1)]
-  if (typeof operator === 'object') {
-    let arg = Object.keys(operator)[0]
-    let expression = Object.keys(operator)[1]
-    operator[arg] = opArr[0]
-    let result = operator[expression].split(arg).join(operator[arg])
-    return sExpression(result)
-  }
   if (typeof operator === 'function') return [operator(...opArr), expr.slice(1)]
+}
+const symbolParse = input => {
+  let res = identifierParser(input)
+  if (res !== null) {
+    if (localObject) {
+      if (localObject.hasOwnProperty(res[0])) {
+        let key = Object.keys(localObject)[0]
+        res[0] = localObject[key]
+        return [res[0], res[1]]
+      }
+    }
+    if (env.hasOwnProperty(res[0])) return res
+    return null
+  } else return null
+}
+const lambdaEval = input => {
+  let result
+  let expression
+  if (env.hasOwnProperty(input[0])) {
+    let obj = env[input[0]]
+    if (input[1].startsWith('(')) result = sExpression(input[1].trim())
+    else result = exprParser(input[1].trim())
+    let arg = Object.keys(obj)[0]
+    obj[arg] = result[0]
+    expression = obj[Object.keys(obj)[1]]
+    return sExpression(expression)
+  } else return null
 }
 
 const beginParse = (expr) => {
@@ -195,6 +218,7 @@ const ifParser = (expr) => {
     else return exprParser(condition2)
   }
 }
+
 console.log(evaluater('(if true 1 2)'))
 console.log(evaluater('(define plus +)'))
 console.log(evaluater('(plus 10 20)'))
@@ -222,3 +246,4 @@ console.log(evaluater('(begin (define x 12) (define y 1) (if (< x y) (+ (+ x y) 
 console.log(evaluater('(/ 10 12)'))
 console.log(evaluater('(* pi 4 3)'))
 console.log(evaluater('(+ 10 (sqrt 100))'))
+
