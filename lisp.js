@@ -191,7 +191,17 @@ const beginParse = (expr) => {
 const ifParser = (expr) => {
   expr = expr.slice(2)
   expr = expr.trim()
+  let x
   let res
+  let count1 = 1
+  let count2 = 0
+  for (let i = 0; i < expr.length; i++) {
+    if (expr[i] === '(') count1++
+    if (expr[i] === ')') count2++
+    if (count1 === count2) {
+      x = i
+    }
+  }
   if (expr.startsWith('(')) res = expressionParse(expr)
   else res = exprParser(expr)
   let val = res[0]
@@ -199,14 +209,12 @@ const ifParser = (expr) => {
   if (!condition.startsWith('(')) {
     let value = exprParser(condition)
     let value2
-    if (value[1].trim().startsWith('(')) value2 = expressionParse(value[1].trim())
-    else value2 = exprParser(value[1].trim())
-    let remStr = value2[1]
-    while (remStr.startsWith(')')) {
-      remStr = remStr.slice(1)
+    if (val === true) return [value[0], expr.slice(x)]
+    else {
+      if (value[1].trim().startsWith('(')) value2 = expressionParse(value[1].trim())
+      else value2 = exprParser(value[1].trim())
+      return [value2[0], expr.slice(x)]
     }
-    if (val === true) return [value[0], remStr]
-    else return [value2[0], remStr]
   } else {
     let index
     let openBrac = 0
@@ -222,47 +230,47 @@ const ifParser = (expr) => {
     }
     let condition1 = condition.slice(0, index + 1)
     let condition2 = condition.slice(index + 2, condition.length)
-    if (condition2.trim().startsWith('(')) value2 = expressionParse(condition2.trim())
-    else value2 = exprParser(condition2.trim())
-    let remStr = value2[1]
-    while (remStr.startsWith(')')) {
-      remStr = remStr.slice(1)
+    if (val === true) return [expressionParse(condition1), expr.slice(x)]
+    else {
+      if (condition2.trim().startsWith('(')) value2 = expressionParse(condition2.trim())
+      else value2 = exprParser(condition2.trim())
+      return [value2[0], expr.slice(x)]
     }
-    if (val === true) return [expressionParse(condition1), remStr.trim()]
-    else return [value2[0], remStr.trim()]
   }
 }
-// console.log(evaluater('(+ (if (> 3 7) (+ 1 3) (+ 5 7)) 6)'))
-// console.log(evaluater('(+ (if false 1 2) 5)'))
-// console.log(evaluater('(define plus +)'))
-// console.log(evaluater('(plus 10 20)'))
-// console.log(evaluater('(define twice (lambda (x) (* 2 x)))'))
-// console.log(evaluater('(twice (twice 5))'))
-// console.log(evaluater('(define circle-area (lambda (r) (* pi (* r r)))'))
-// console.log(evaluater('(circle-area (+ 5 5))'))
-// console.log(evaluater('(if (<= 3 7) 1 oops)'))
-// console.log(evaluater('(define define 10)'))
-// console.log(evaluater('(define define define)'))
-// console.log(evaluater('(define r 23)'))
-// console.log(evaluater('(+ r r)'))
-// console.log(evaluater('(+ (+ 4 5) (- 16 4))'))
-// console.log(evaluater('(* 1)'))
-// console.log(evaluater('(/ 40)'))
-// console.log(evaluater('(/ 40 400)'))
-// console.log(evaluater('(+ 1 3 4 6 8 9)'))
-// console.log(evaluater('(begin (begin (+ 1 2) (+ 3 7)))'))
-// console.log(evaluater('(begin (define r 10)(* pi (* r r)))'))
-// console.log(evaluater('(if (< 10 20) (+ 1 1) (+ 3 3))'))
-// console.log(evaluater('(if (< (* 11 11) 120) (* 7 6) oops)'))
-// console.log(evaluater('(begin (define e 1) (+ e 3))'))
-// console.log(evaluater('(begin (begin (define x 12) (define y 1) (+ x y)))'))
-// console.log(evaluater('(begin (define x 12) (define y 1) (if (< x y) (+ (+ x y) (* x y)) (* x y)))'))
-// console.log(evaluater('(/ 10 12)'))
-// console.log(evaluater('(* pi 4 3)'))
-// console.log(evaluater('(+ 10 (sqrt 100))'))
+ console.log(evaluater('(+ (if (+ 1 1) 2 (+ 3 4)) 5)'))
+console.log(evaluater('(if (> 4 3) (+ 1 1) (+ 5 5))'))
+console.log(evaluater('(+ (if (> 3 7) (+ 1 3) (+ 5 7)) 6)'))
+console.log(evaluater('(+ (if true 1 2) 5)'))
+console.log(evaluater('(define plus +)'))
+console.log(evaluater('(plus 10 20)'))
+console.log(evaluater('(define twice (lambda (x) (* 2 x)))'))
+console.log(evaluater('(twice (twice 5))'))
+console.log(evaluater('(define circle-area (lambda (r) (* pi (* r r)))'))
+console.log(evaluater('(circle-area (+ 5 5))'))
+console.log(evaluater('(if (<= 3 7) 1 oops)'))
+console.log(evaluater('(define define 10)'))
+console.log(evaluater('(define define define)'))
+console.log(evaluater('(define r 23)'))
+console.log(evaluater('(+ r r)'))
+console.log(evaluater('(+ (+ 4 5) (- 16 4))'))
+console.log(evaluater('(* 1)'))
+console.log(evaluater('(/ 40)'))
+console.log(evaluater('(/ 40 400)'))
+console.log(evaluater('(+ 1 3 4 6 8 9)'))
+console.log(evaluater('(begin (begin (+ 1 2) (+ 3 7)))'))
+console.log(evaluater('(begin (define r 10)(* pi (* r r)))'))
+console.log(evaluater('(if (< 10 20) (+ 1 1) (+ 3 3))'))
+console.log(evaluater('(if (< (* 11 11) 120) (* 7 6) oops)'))
+console.log(evaluater('(begin (define e 1) (+ e 3))'))
+console.log(evaluater('(begin (begin (define x 12) (define y 1) (+ x y)))'))
+console.log(evaluater('(begin (define x 12) (define y 1) (if (< x y) (+ (+ x y) (* x y)) (* x y)))'))
+console.log(evaluater('(/ 10 12)'))
+console.log(evaluater('(* pi 4 3)'))
+console.log(evaluater('(+ 10 (sqrt 100))'))
 
-// console.log(evaluater('(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))'))
-// console.log(evaluater('(fact 0)'))
+console.log(evaluater('(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))'))
+console.log(evaluater('(fact 3)'))
 
-// console.log(evaluater('(define twice (lambda (x) (* 2 x)))'))
-// console.log(evaluater('(twice (twice (twice (twice (twice 5)))))'))
+console.log(evaluater('(define twice (lambda (x) (* 2 x)))'))
+console.log(evaluater('(twice (twice (twice (twice (twice 5)))))'))
