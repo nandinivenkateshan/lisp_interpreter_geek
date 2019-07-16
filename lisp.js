@@ -240,7 +240,8 @@ const ifParser = (expr) => {
 }
 
 console.log(evaluater('(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))'))
-console.log(evaluater('(fact 3)'))
+console.log(evaluater('(fact 8)'))
 
-console.log(evaluater('(define twice (lambda (x) (* 2 x)))'))
-console.log(evaluater('(twice (twice (twice (twice (twice 5)))))'))
+// console.log(evaluater('(define twice (lambda (x) (* 2 x)))'))
+// console.log(evaluater('(twice (twice (twice (twice (twice 5)))))'))
+
